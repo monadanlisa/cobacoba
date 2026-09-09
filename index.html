@@ -9,9 +9,12 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+      -webkit-touch-callout: none !important;
+      -khtml-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
     }
 
     body {
@@ -35,7 +38,6 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      overflow: hidden;
     }
 
     h1, h2, h3 {
@@ -122,14 +124,12 @@
       font-weight: bold;
     }
 
-    /* Container Soal dengan Anti-OCR Security Pattern */
     .question-box {
       background: #fafafa;
       border: 1px dashed #cbd5e1;
-      padding: 12px;
+      padding: 14px;
       border-radius: 8px;
       margin-bottom: 16px;
-      position: relative;
     }
 
     .question-text {
@@ -153,6 +153,7 @@
       text-align: left;
       font-size: 15px;
       cursor: pointer;
+      color: #334155;
     }
 
     .option-btn.selected {
@@ -202,7 +203,7 @@
       text-align: left;
     }
 
-    /* OVERLAY BLUR TOTAL SAAT GOOGLE LENS / POPUP AKTIF */
+    /* OVERLAY PELINDUNG ANTI-GOOGLE LENS & POPUP */
     #anti-lens-overlay {
       display: none;
       position: fixed;
@@ -210,9 +211,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.95);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
+      background: #000000;
       z-index: 999999;
       justify-content: center;
       align-items: center;
@@ -220,20 +219,15 @@
       text-align: center;
       padding: 20px;
     }
-
-    #anti-lens-overlay p {
-      font-size: 18px;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
 
-  <!-- TIAP GOOGLE LENS AKTIF / BLUR LAYAR DITUTUP TOTAL -->
+  <!-- LAYER ANTI GOOGLE LENS / POPUP -->
   <div id="anti-lens-overlay">
     <div>
-      <p>⚠️ DILARANG MENGGUNAKAN GOOGLE LENS / ASISTEN!</p>
-      <span style="font-size: 13px; color: #ccc;">Kembali fokus ke aplikasi untuk melanjutkan kuis.</span>
+      <h2 style="color: #ef4444; margin-bottom: 8px;">⚠️ DILARANG MEMBUKA ASISTEN / LENS!</h2>
+      <p style="font-size: 14px; color: #ccc;">Kembali fokus ke layar ujian untuk melanjutkan.</p>
     </div>
   </div>
 
@@ -308,7 +302,7 @@
 
   <script>
     /* =======================================================
-       BARIS 180: MASUKKAN SCRIPT_URL GOOGLE APPS SCRIPT DI SINI
+       MASUKKAN GOOGLE APPS SCRIPT URL DI SINI
        ======================================================= */
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_GANTI_DENGAN_URL_SCRIPT_ANDA/exec";
 
@@ -320,7 +314,7 @@
     let maxViolations = 2; 
     let isSubmitted = false;
 
-    // DATABASE 40 SOAL INFORMATIKA KELAS 8 ASTS GANJIL
+    // 40 SOAL INFORMATIKA KELAS 8 ASTS GANJIL
     const quizData = [
       { id: 1, q: "Menentukan informasi penting merupakan bagian dari ....", opt: ["A. Dekomposisi", "B. Algoritma", "C. Abstraksi", "D. Pola"], ans: 2 },
       { id: 2, q: "Kegiatan mengumpulkan, mengolah, dan menyajikan data disebut ....", opt: ["A. Analisis data", "B. Komunikasi data", "C. Pengolahan data", "D. Penyimpanan data"], ans: 0 },
@@ -364,12 +358,6 @@
       { id: 40, q: "Pengertian dasar Berpikir Komputasional adalah ....", opt: ["A. Cara bermain komputer", "B. Cara berpikir logis untuk menyelesaikan masalah", "C. Cara memperbaiki komputer", "D. Cara menggunakan internet"], ans: 1 }
     ];
 
-    // FUNKSI OBFUSCATION / ANTI-OCR GOOGLE LENS
-    function obfuscateText(text) {
-      // Menyisipkan zero-width space (&#8203;) di tiap 2 karakter untuk merusak bacaan OCR Google Lens
-      return text.split('').join('\u8203');
-    }
-
     function startQuiz() {
       namaSiswa = document.getElementById("nama").value.trim();
       kelasSiswa = document.getElementById("kelas").value;
@@ -390,9 +378,7 @@
     function renderQuestion() {
       const q = quizData[currentIndex];
       document.getElementById("quiz-progress").innerText = `Soal ${currentIndex + 1} / ${quizData.length}`;
-      
-      // Render soal dengan teknik Anti-OCR
-      document.getElementById("question-text").innerText = obfuscateText(`${q.id}. ${q.q}`);
+      document.getElementById("question-text").innerText = `${q.id}. ${q.q}`;
 
       const container = document.getElementById("options-container");
       container.innerHTML = "";
@@ -403,7 +389,7 @@
         if (userAnswers[q.id] === i) {
           btn.classList.add("selected");
         }
-        btn.innerText = obfuscateText(optText);
+        btn.innerText = optText;
         btn.onclick = () => selectOption(q.id, i);
         container.appendChild(btn);
       });
@@ -503,10 +489,10 @@
     function setupSecurityListeners() {
       const overlay = document.getElementById("anti-lens-overlay");
 
-      // DETEKSI UTAMA ANTI-GOOGLE LENS & TRIGGER OVERLAY
+      // SAAT SISWA MEMICU GOOGLE LENS / PINDAH APLIKASI -> LAYAR HITAM TOTAL
       window.addEventListener("blur", () => {
         overlay.style.display = "flex";
-        registerViolation("Layar kehilangan fokus (Memicu Google Lens / Pindah App).");
+        registerViolation("Kehilangan fokus layar (Memicu Lens / Pindah Tab).");
       });
 
       window.addEventListener("focus", () => {
@@ -521,14 +507,14 @@
         }
       });
 
-      // MENCEGAH BACK BUTTON
+      // MENCEGAH TOMBOL BACK HP
       history.pushState(null, null, location.href);
       window.onpopstate = function () {
         history.pushState(null, null, location.href);
         registerViolation("Menekan tombol Back.");
       };
 
-      // BLOKIR INTERAKSI TEKS & INSPEX
+      // BLOKIR KLIK KANAN & COPY PASTE
       document.addEventListener("contextmenu", (e) => e.preventDefault());
       document.addEventListener("copy", (e) => e.preventDefault());
       document.addEventListener("paste", (e) => e.preventDefault());
@@ -541,7 +527,7 @@
           (e.ctrlKey && e.key === "U")
         ) {
           e.preventDefault();
-          registerViolation("Membuka developer inspect element.");
+          registerViolation("Membuka inspect element.");
         }
       });
     }

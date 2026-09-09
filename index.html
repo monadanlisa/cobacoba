@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kuis Informatika Kelas 8 - ASTS Ganjil</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
+
+    .app-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      color: #1a2b4c;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      background-color: #fff;
+    }
+
+    .btn {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn:active {
+      background-color: #1d4ed8;
+    }
+
+    .quiz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 16px;
+      background: #eff6ff;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #1e40af;
+    }
+
+    .warning-box {
+      background-color: #fef2f2;
+      color: #991b1b;
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* Container Soal dengan Anti-OCR Security Pattern */
+    .question-box {
+      background: #fafafa;
+      border: 1px dashed #cbd5e1;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .question-text {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: #0f172a;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-btn {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      padding: 12px 14px;
+      border-radius: 8px;
+      text-align: left;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .option-btn.selected {
+      background-color: #dbeafe;
+      border-color: #2563eb;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-secondary {
+      background-color: #64748b;
+    }
+
+    .result-card {
+      text-align: center;
+    }
+
+    .score-badge {
+      font-size: 44px;
+      font-weight: 800;
+      color: #2563eb;
+      margin: 16px 0;
+    }
+
+    .teacher-message {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      margin-top: 14px;
+    }
+
+    .student-info {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    /* OVERLAY BLUR TOTAL SAAT GOOGLE LENS / POPUP AKTIF */
+    #anti-lens-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      z-index: 999999;
+      justify-content: center;
+      align-items: center;
+      color: #ffffff;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #anti-lens-overlay p {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TIAP GOOGLE LENS AKTIF / BLUR LAYAR DITUTUP TOTAL -->
+  <div id="anti-lens-overlay">
+    <div>
+      <p>⚠️ DILARANG MENGGUNAKAN GOOGLE LENS / ASISTEN!</p>
+      <span style="font-size: 13px; color: #ccc;">Kembali fokus ke aplikasi untuk melanjutkan kuis.</span>
+    </div>
+  </div>
+
+  <div class="app-card">
+    
+    <!-- LAYAR AWAL -->
+    <div id="screen-start" class="screen active">
+      <h1>ASTS Informatika</h1>
+      <p class="subtitle">Kelas 8 SMP Negeri 5 Tangerang</p>
+      
+      <div class="form-group">
+        <label for="nama">Nama Lengkap</label>
+        <input type="text" id="nama" placeholder="Masukkan nama kamu..." autocomplete="off">
+      </div>
+      
+      <div class="form-group">
+        <label for="kelas">Kelas</label>
+        <select id="kelas">
+          <option value="">-- Pilih Kelas --</option>
+          <option value="8-A">8-A</option>
+          <option value="8-B">8-B</option>
+          <option value="8-C">8-C</option>
+          <option value="8-D">8-D</option>
+          <option value="8-E">8-E</option>
+        </select>
+      </div>
+
+      <button class="btn" onclick="startQuiz()">Mulai Kerjakan Soal</button>
+    </div>
+
+    <!-- LAYAR KUIS -->
+    <div id="screen-quiz" class="screen">
+      <div class="warning-box" id="warning-text">
+        Peringatan Violasi: 0 / 2
+      </div>
+
+      <div class="quiz-header">
+        <span id="quiz-progress">Soal 1 / 40</span>
+      </div>
+
+      <div class="question-box">
+        <div class="question-text" id="question-text">Loading...</div>
+      </div>
+
+      <div class="options-container" id="options-container"></div>
+
+      <div class="controls">
+        <button class="btn btn-secondary" id="btn-prev" onclick="navigateQuestion(-1)">Sebelumnya</button>
+        <button class="btn" id="btn-next" onclick="navigateQuestion(1)">Berikutnya</button>
+      </div>
+    </div>
+
+    <!-- LAYAR SELESAI -->
+    <div id="screen-result" class="screen result-card">
+      <h2>Hasil Ujian Akhir</h2>
+      
+      <div class="student-info">
+        <p><strong>Nama:</strong> <span id="res-nama">-</span></p>
+        <p><strong>Kelas:</strong> <span id="res-kelas">-</span></p>
+        <p><strong>Status:</strong> <span id="res-status">Selesai</span></p>
+      </div>
+
+      <p>Skor Akhir Kamu:</p>
+      <div class="score-badge" id="res-score">0</div>
+
+      <div id="teacher-quote" class="teacher-message" style="display: none;">
+        bu Mona Bangga sama kamu!
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* =======================================================
+       BARIS 180: MASUKKAN SCRIPT_URL GOOGLE APPS SCRIPT DI SINI
+       ======================================================= */
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_GANTI_DENGAN_URL_SCRIPT_ANDA/exec";
+
+    let namaSiswa = "";
+    let kelasSiswa = "";
+    let currentIndex = 0;
+    let userAnswers = {};
+    let violations = 0;
+    let maxViolations = 2; 
+    let isSubmitted = false;
+
+    // DATABASE 40 SOAL INFORMATIKA KELAS 8 ASTS GANJIL
+    const quizData = [
+      { id: 1, q: "Menentukan informasi penting merupakan bagian dari ....", opt: ["A. Dekomposisi", "B. Algoritma", "C. Abstraksi", "D. Pola"], ans: 2 },
+      { id: 2, q: "Kegiatan mengumpulkan, mengolah, dan menyajikan data disebut ....", opt: ["A. Analisis data", "B. Komunikasi data", "C. Pengolahan data", "D. Penyimpanan data"], ans: 0 },
+      { id: 3, q: "Struktur langkah terurut untuk menyelesaikan masalah dinamakan ....", opt: ["A. Dekomposisi", "B. Algoritma", "C. Data", "D. Grafik"], ans: 1 },
+      { id: 4, q: "Data yang akurat adalah data yang ....", opt: ["A. Salah", "B. Sesuai fakta", "C. Tidak lengkap", "D. Acak"], ans: 1 },
+      { id: 5, q: "Berpikir komputasional membantu meningkatkan kemampuan ....", opt: ["A. Kritis dan logis", "B. Bermain game", "C. Menghafal", "D. Menyalin tugas"], ans: 0 },
+      { id: 6, q: "Persentase digunakan untuk menunjukkan ....", opt: ["A. Perbandingan dalam seratus bagian", "B. Nama data", "C. Warna data", "D. Ukuran kertas"], ans: 0 },
+      { id: 7, q: "Langkah-langkah logis dan terurut untuk menyelesaikan masalah disebut ....", opt: ["A. Langkah penyelesaian", "B. Data mentah", "C. Program komputer", "D. Grafik data"], ans: 0 },
+      { id: 8, q: "Salah satu manfaat berpikir komputasional bagi siswa adalah ....", opt: ["A. Memudahkan penyelesaian masalah", "B. Menambah kesulitan belajar", "C. Mengurangi kreativitas", "D. Menghilangkan logika"], ans: 0 },
+      { id: 9, q: "Aplikasi Google Forms umumnya digunakan untuk ....", opt: ["A. Menggambar grafik", "B. Mengumpulkan data", "C. Mengedit video", "D. Membuat game"], ans: 1 },
+      { id: 10, q: "Jenis data yang berupa angka disebut sebagai data ....", opt: ["A. Kualitatif", "B. Kuantitatif", "C. Visual", "D. Naratif"], ans: 1 },
+      { id: 11, q: "Berpikir komputasional dapat diterapkan dalam ....", opt: ["A. Pemrograman saja", "B. Kehidupan sehari-hari saja", "C. Berbagai bidang kehidupan", "D. Sekolah saja"], ans: 2 },
+      { id: 12, q: "Tujuan utama dari penyajian data adalah ....", opt: ["A. Memudahkan pemahaman data", "B. Menghapus data", "C. Menambah data", "D. Mengurangi data"], ans: 0 },
+      { id: 13, q: "Definisi pengenalan pola dalam berpikir komputasional adalah ....", opt: ["A. Mencari perbedaan data", "B. Mencari kesamaan dalam masalah", "C. Menghapus informasi", "D. Membuat grafik"], ans: 1 },
+      { id: 14, q: "Hasil yang diharapkan dari penerapan berpikir komputasional adalah ....", opt: ["A. Solusi masalah terstruktur", "B. Data yang hilang", "C. Grafik kosong", "D. Komputer baru"], ans: 0 },
+      { id: 15, q: "Data mentah diartikan sebagai ....", opt: ["A. Informasi yang belum diolah", "B. Hasil pengolahan data", "C. Kesimpulan penelitian", "D. Grafik hasil penelitian"], ans: 0 },
+      { id: 16, q: "Data nama siswa termasuk dalam jenis data ....", opt: ["A. Numerik", "B. Kuantitatif", "C. Kualitatif", "D. Statistik"], ans: 2 },
+      { id: 17, q: "Tujuan utama dari berpikir komputasional adalah ....", opt: ["A. Menyelesaikan masalah secara efektif", "B. Menghafal kode program", "C. Membuat komputer baru", "D. Menambah pekerjaan"], ans: 0 },
+      { id: 18, q: "Saat membuat jadwal belajar harian, kita menerapkan ....", opt: ["A. Berpikir komputasional", "B. Bermain game", "C. Menggambar", "D. Menulis cerita"], ans: 0 },
+      { id: 19, q: "Output dari proses pengolahan data berupa ....", opt: ["A. Data mentah", "B. Kesimpulan", "C. Formulir", "D. File kosong"], ans: 1 },
+      { id: 20, q: "Prinsip abstraksi berarti ....", opt: ["A. Memilih informasi penting", "B. Menghapus semua data", "C. Menambah masalah", "D. Menggambar diagram"], ans: 0 },
+      { id: 21, q: "Langkah pertama yang harus dilakukan dalam analisis data adalah ....", opt: ["A. Menyimpulkan data", "B. Mengumpulkan data", "C. Membuat grafik", "D. Mengolah data"], ans: 1 },
+      { id: 22, q: "Istilah dekomposisi memiliki arti ....", opt: ["A. Memecah masalah menjadi bagian kecil", "B. Menggabungkan masalah", "C. Menghapus data", "D. Menyimpan data"], ans: 0 },
+      { id: 23, q: "Menghilangkan bagian yang tidak penting dalam masalah disebut ....", opt: ["A. Abstraksi", "B. Bermain", "C. Menyalin data", "D. Menghapus data"], ans: 0 },
+      { id: 24, q: "Dampak dari penggunaan data yang tidak lengkap adalah ....", opt: ["A. Analisis lebih baik", "B. Kesimpulan kurang tepat", "C. Grafik lebih menarik", "D. Penyimpanan lebih cepat"], ans: 1 },
+      { id: 25, q: "Manfaat utama dari analisis data adalah ....", opt: ["A. Membantu pengambilan keputusan", "B. Menghapus informasi", "C. Menambah masalah", "D. Mengurangi fakta"], ans: 0 },
+      { id: 26, q: "Visualisasi diagram garis sangat cocok digunakan untuk ....", opt: ["A. Menampilkan perkembangan data dari waktu ke waktu", "B. Menampilkan foto", "C. Menyimpan data", "D. Menulis laporan"], ans: 0 },
+      { id: 27, q: "Diagram lingkaran (pie chart) digunakan untuk memperlihatkan ....", opt: ["A. Urutan proses", "B. Hubungan data", "C. Persentase bagian dari keseluruhan", "D. Perubahan waktu"], ans: 2 },
+      { id: 28, q: "Salah satu contoh data kuantitatif di bawah ini adalah ....", opt: ["A. Nama siswa", "B. Alamat siswa", "C. Umur siswa", "D. Hobi siswa"], ans: 2 },
+      { id: 29, q: "Struktur kumpulan data yang disusun dalam bentuk baris dan kolom disebut ....", opt: ["A. Grafik", "B. Tabel", "C. Diagram", "D. Algoritma"], ans: 1 },
+      { id: 30, q: "Data yang diperoleh secara langsung dari sumber utama dinamakan ....", opt: ["A. Data sekunder", "B. Data primer", "C. Data digital", "D. Data analog"], ans: 1 },
+      { id: 31, q: "Visualisasi data yang paling tepat untuk membandingkan jumlah data antar kategori adalah ....", opt: ["A. Diagram batang", "B. Diagram garis", "C. Diagram alur", "D. Diagram jaringan"], ans: 0 },
+      { id: 32, q: "Masalah yang rumit akan lebih mudah diselesaikan jika menggunakan teknik ....", opt: ["A. Dekomposisi", "B. Mengabaikannya", "C. Menebak jawaban", "D. Menyalin pekerjaan orang lain"], ans: 0 },
+      { id: 33, q: "Perangkat lunak Microsoft Excel utamanya digunakan untuk ....", opt: ["A. Mengolah data", "B. Mengedit video", "C. Membuat animasi", "D. Bermain game"], ans: 0 },
+      { id: 34, q: "Syarat utama penulisan algoritma yang baik adalah harus disusun secara ....", opt: ["A. Acak", "B. Berurutan", "C. Terbalik", "D. Bebas"], ans: 1 },
+      { id: 35, q: "Empat pilar utama berpikir komputasional terdiri dari ....", opt: ["A. Input dan output", "B. Hardware dan software", "C. Dekomposisi, pola, abstraksi, algoritma", "D. CPU dan RAM"], ans: 2 },
+      { id: 36, q: "Contoh penerapan pengenalan pola dalam pembelajaran adalah ....", opt: ["A. Menemukan kesamaan soal matematika", "B. Menghapus data", "C. Membuat video", "D. Menyimpan gambar"], ans: 0 },
+      { id: 37, q: "Salah satu contoh penerapan algoritma sederhana dalam kehidupan sehari-hari adalah ....", opt: ["A. Bermain sepak bola", "B. Langkah membuat teh manis", "C. Menonton televisi", "D. Membaca buku"], ans: 1 },
+      { id: 38, q: "Kemampuan Berpikir Komputasional sangat krusial dimiliki pada era ....", opt: ["A. Batu", "B. Pertanian", "C. Digital", "D. Kerajaan"], ans: 2 },
+      { id: 39, q: "Tujuan utama pengurutan data pada tabel adalah ....", opt: ["A. Menampilkan data secara teratur", "B. Menghapus data", "C. Menyimpan gambar", "D. Membuat program"], ans: 0 },
+      { id: 40, q: "Pengertian dasar Berpikir Komputasional adalah ....", opt: ["A. Cara bermain komputer", "B. Cara berpikir logis untuk menyelesaikan masalah", "C. Cara memperbaiki komputer", "D. Cara menggunakan internet"], ans: 1 }
+    ];
+
+    // FUNKSI OBFUSCATION / ANTI-OCR GOOGLE LENS
+    function obfuscateText(text) {
+      // Menyisipkan zero-width space (&#8203;) di tiap 2 karakter untuk merusak bacaan OCR Google Lens
+      return text.split('').join('\u8203');
+    }
+
+    function startQuiz() {
+      namaSiswa = document.getElementById("nama").value.trim();
+      kelasSiswa = document.getElementById("kelas").value;
+
+      if (!namaSiswa || !kelasSiswa) {
+        alert("Harap isi Nama Lengkap dan Kelas terlebih dahulu!");
+        return;
+      }
+
+      requestFullScreen();
+      document.getElementById("screen-start").classList.remove("active");
+      document.getElementById("screen-quiz").classList.add("active");
+
+      setupSecurityListeners();
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = quizData[currentIndex];
+      document.getElementById("quiz-progress").innerText = `Soal ${currentIndex + 1} / ${quizData.length}`;
+      
+      // Render soal dengan teknik Anti-OCR
+      document.getElementById("question-text").innerText = obfuscateText(`${q.id}. ${q.q}`);
+
+      const container = document.getElementById("options-container");
+      container.innerHTML = "";
+
+      q.opt.forEach((optText, i) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        if (userAnswers[q.id] === i) {
+          btn.classList.add("selected");
+        }
+        btn.innerText = obfuscateText(optText);
+        btn.onclick = () => selectOption(q.id, i);
+        container.appendChild(btn);
+      });
+
+      document.getElementById("btn-prev").style.visibility = currentIndex === 0 ? "hidden" : "visible";
+      if (currentIndex === quizData.length - 1) {
+        document.getElementById("btn-next").innerText = "Kirim Jawaban";
+        document.getElementById("btn-next").style.backgroundColor = "#16a34a";
+      } else {
+        document.getElementById("btn-next").innerText = "Berikutnya";
+        document.getElementById("btn-next").style.backgroundColor = "#2563eb";
+      }
+    }
+
+    function selectOption(qId, optionIdx) {
+      userAnswers[qId] = optionIdx;
+      renderQuestion();
+    }
+
+    function navigateQuestion(direction) {
+      if (direction === 1 && currentIndex === quizData.length - 1) {
+        if (confirm("Apakah Anda yakin ingin menyelesaikan dan mengirim jawaban?")) {
+          submitQuiz("Selesai Normal");
+        }
+        return;
+      }
+      currentIndex += direction;
+      renderQuestion();
+    }
+
+    function submitQuiz(status = "Selesai Normal") {
+      if (isSubmitted) return;
+      isSubmitted = true;
+
+      let scoreCount = 0;
+      quizData.forEach(q => {
+        if (userAnswers[q.id] === q.ans) scoreCount++;
+      });
+
+      const totalScore = Math.round((scoreCount / quizData.length) * 100);
+
+      document.getElementById("screen-quiz").classList.remove("active");
+      document.getElementById("screen-result").classList.add("active");
+
+      document.getElementById("res-nama").innerText = namaSiswa;
+      document.getElementById("res-kelas").innerText = kelasSiswa;
+      document.getElementById("res-score").innerText = totalScore;
+      document.getElementById("res-status").innerText = status;
+
+      if (totalScore >= 75) {
+        document.getElementById("teacher-quote").style.display = "block";
+      }
+
+      const payload = {
+        timestamp: new Date().toLocaleString("id-ID"),
+        nama: namaSiswa,
+        kelas: kelasSiswa,
+        nilai: totalScore,
+        benar: scoreCount,
+        totalSoal: quizData.length,
+        pelanggaran: violations,
+        statusKirim: status,
+        detailJawaban: JSON.stringify(userAnswers)
+      };
+
+      if (SCRIPT_URL && !SCRIPT_URL.includes("GANTI_DENGAN_URL")) {
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(err => console.error(err));
+      }
+    }
+
+    function requestFullScreen() {
+      const doc = document.documentElement;
+      if (doc.requestFullscreen) doc.requestFullscreen();
+      else if (doc.mozRequestFullScreen) doc.mozRequestFullScreen();
+      else if (doc.webkitRequestAnimationFrame) doc.webkitRequestAnimationFrame();
+      else if (doc.msRequestFullscreen) doc.msRequestFullscreen();
+    }
+
+    function registerViolation(reason) {
+      if (isSubmitted) return;
+      violations++;
+      document.getElementById("warning-text").innerText = `Peringatan Violasi: ${violations} / ${maxViolations}`;
+      
+      alert(`PERINGATAN VIOLASI!\nAlasan: ${reason}\nPelanggaran ke-${violations} dari maks ${maxViolations}.`);
+
+      if (violations >= maxViolations) {
+        alert("Batas pelanggaran terlampaui. Kuis otomatis dikirim!");
+        submitQuiz("Diskualifikasi / Auto Submit");
+      }
+    }
+
+    function setupSecurityListeners() {
+      const overlay = document.getElementById("anti-lens-overlay");
+
+      // DETEKSI UTAMA ANTI-GOOGLE LENS & TRIGGER OVERLAY
+      window.addEventListener("blur", () => {
+        overlay.style.display = "flex";
+        registerViolation("Layar kehilangan fokus (Memicu Google Lens / Pindah App).");
+      });
+
+      window.addEventListener("focus", () => {
+        overlay.style.display = "none";
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          overlay.style.display = "flex";
+        } else {
+          overlay.style.display = "none";
+        }
+      });
+
+      // MENCEGAH BACK BUTTON
+      history.pushState(null, null, location.href);
+      window.onpopstate = function () {
+        history.pushState(null, null, location.href);
+        registerViolation("Menekan tombol Back.");
+      };
+
+      // BLOKIR INTERAKSI TEKS & INSPEX
+      document.addEventListener("contextmenu", (e) => e.preventDefault());
+      document.addEventListener("copy", (e) => e.preventDefault());
+      document.addEventListener("paste", (e) => e.preventDefault());
+      document.addEventListener("cut", (e) => e.preventDefault());
+
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "F12" ||
+          (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
+          (e.ctrlKey && e.key === "U")
+        ) {
+          e.preventDefault();
+          registerViolation("Membuka developer inspect element.");
+        }
+      });
+    }
+  </script>
+</body>
+</html>
